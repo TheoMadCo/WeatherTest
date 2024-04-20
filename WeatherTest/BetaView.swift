@@ -8,32 +8,32 @@ struct ContentView: View {
     @State private var errorMessage: String?
     
     var body: some View {
-        ZStack {
-            Color.blue
-                .ignoresSafeArea()
+        VStack {
+            TextField("Enter city", text: $city, onCommit: fetchWeather)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.blue, lineWidth: 2)
+                )
+                .foregroundColor(.blue)
+                .padding(.horizontal)
+                .padding(.bottom, 10)
             
-            VStack {
-                Text("Weather App")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.top, 50)
-                
-                TextField("Enter city", text: $city, onCommit: fetchWeather)
+            if isLoading {
+                ProgressView("Loading...")
+                    .progressViewStyle(CircularProgressViewStyle())
                     .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .foregroundColor(.black)
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
-                
-                if let weatherData = weatherData {
-                    WeatherView(weatherData: weatherData, weatherIcon: weatherIcon)
-                }
-                
-                Spacer()
+            } else if let weatherData = weatherData {
+                WeatherView(weatherData: weatherData, weatherIcon: weatherIcon)
+            } else if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding()
             }
+            
+            Spacer()
         }
+        .padding()
     }
     
     private func fetchWeather() {
@@ -42,6 +42,7 @@ struct ContentView: View {
         
         guard let encodedCity = city.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(encodedCity)&appid=14681310f305a9ea549bb12bc8abb35c&units=metric") else {
+            print("Invalid URL")
             isLoading = false
             return
         }
@@ -53,29 +54,34 @@ struct ContentView: View {
             
             guard let data = data, error == nil else {
                 errorMessage = "Error: \(error?.localizedDescription ?? "Unknown error")"
+                print(errorMessage ?? "Unknown error")
                 return
             }
             
             if let decodedResponse = try? JSONDecoder().decode(WeatherData.self, from: data) {
                 DispatchQueue.main.async {
                     self.weatherData = decodedResponse
+                    // Fetch weather icon
                     if let iconCode = decodedResponse.weather.first?.icon {
                         fetchWeatherIcon(iconCode: iconCode)
                     }
                 }
             } else {
                 errorMessage = "Failed to decode response"
+                print(errorMessage ?? "Failed to decode response")
             }
         }.resume()
     }
     
     private func fetchWeatherIcon(iconCode: String) {
         guard let iconURL = URL(string: "https://openweathermap.org/img/wn/\(iconCode)@2x.png") else {
+            print("Invalid icon URL")
             return
         }
         
         URLSession.shared.dataTask(with: iconURL) { data, response, error in
             guard let data = data, error == nil else {
+                print("Error fetching weather icon: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
             
@@ -89,8 +95,6 @@ struct ContentView: View {
 struct WeatherView: View {
     let weatherData: WeatherData
     let weatherIcon: UIImage?
-    @State private var showDetails = false
-    @State private var detailedWeather: DetailedWeather?
     
     var body: some View {
         VStack(alignment: .center, spacing: 20) {
@@ -103,7 +107,7 @@ struct WeatherView: View {
                 Image(uiImage: weatherIcon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 120, height: 120)
+                    .frame(width: 120, height: 120) // Adjusted size for the weather icon
             }
             
             Text("\(Int(weatherData.main.temp))°C")
@@ -114,66 +118,16 @@ struct WeatherView: View {
                 .font(.headline)
                 .foregroundColor(.gray)
             
-            if showDetails {
-                if let detailedWeather = detailedWeather {
-                    Text("Humidity: \(detailedWeather.main.humidity)%")
-                    Text("Wind Speed: \(detailedWeather.wind.speed) m/s")
-                    Text("Pressure: \(detailedWeather.main.pressure) hPa")
-                    Text("Visibility: \(detailedWeather.visibility / 1000) km")
-                    Text("Sunrise: \(formatTime(timestamp: detailedWeather.sys.sunrise))")
-                    Text("Sunset: \(formatTime(timestamp: detailedWeather.sys.sunset))")
-                } else {
-                    Text("Loading...")
-                        .foregroundColor(.gray)
-                }
-            }
-            
-            Button(showDetails ? "Hide more details" : "Show more details") {
-                if showDetails {
-                    showDetails = false
-                } else {
-                    fetchDetailedWeather()
-                }
-            }
-            .foregroundColor(.blue)
-            
-            Spacer()
+            Spacer() // Ensures elements are vertically centered and card expands vertically
         }
         .padding()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity) // Card expands horizontally
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .foregroundColor(.white)
                 .shadow(radius: 5)
         )
         .padding()
-    }
-    
-    private func fetchDetailedWeather() {
-        guard let city = weatherData.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=14681310f305a9ea549bb12bc8abb35c&units=metric") else {
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
-                return
-            }
-            
-            if let detailedWeather = try? JSONDecoder().decode(DetailedWeather.self, from: data) {
-                DispatchQueue.main.async {
-                    self.detailedWeather = detailedWeather
-                    self.showDetails = true
-                }
-            }
-        }.resume()
-    }
-    
-    private func formatTime(timestamp: Int) -> String {
-        let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        return dateFormatter.string(from: date)
     }
 }
 
@@ -185,29 +139,11 @@ struct WeatherData: Codable {
 
 struct Main: Codable {
     let temp: Double
-    let humidity: Int
-    let pressure: Int
 }
 
 struct Weather: Codable {
     let description: String
     let icon: String
-}
-
-struct DetailedWeather: Codable {
-    let main: Main
-    let wind: Wind
-    let visibility: Int
-    let sys: Sys
-    
-    struct Sys: Codable {
-        let sunrise: Int
-        let sunset: Int
-    }
-}
-
-struct Wind: Codable {
-    let speed: Double
 }
 
 struct ContentView_Previews: PreviewProvider {
