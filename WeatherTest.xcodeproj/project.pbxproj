@@ -14,6 +14,7 @@
 		764509672BD3ECAB001129F7 /* WeatherTestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764509662BD3ECAB001129F7 /* WeatherTestTests.swift */; };
 		764509712BD3ECAB001129F7 /* WeatherTestUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764509702BD3ECAB001129F7 /* WeatherTestUITests.swift */; };
 		764509732BD3ECAB001129F7 /* WeatherTestUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764509722BD3ECAB001129F7 /* WeatherTestUITestsLaunchTests.swift */; };
+		764509822BD3FD29001129F7 /* ApiKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764509812BD3FD29001129F7 /* ApiKey.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +45,7 @@
 		7645096C2BD3ECAB001129F7 /* WeatherTestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WeatherTestUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		764509702BD3ECAB001129F7 /* WeatherTestUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherTestUITests.swift; sourceTree = "<group>"; };
 		764509722BD3ECAB001129F7 /* WeatherTestUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherTestUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		764509812BD3FD29001129F7 /* ApiKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiKey.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +98,7 @@
 			children = (
 				764509552BD3ECA9001129F7 /* WeatherTestApp.swift */,
 				764509572BD3ECA9001129F7 /* ContentView.swift */,
+				764509812BD3FD29001129F7 /* ApiKey.swift */,
 				764509592BD3ECAA001129F7 /* Assets.xcassets */,
 				7645095B2BD3ECAA001129F7 /* Preview Content */,
 			);
@@ -258,6 +261,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				764509582BD3ECA9001129F7 /* ContentView.swift in Sources */,
+				764509822BD3FD29001129F7 /* ApiKey.swift in Sources */,
 				764509562BD3ECA9001129F7 /* WeatherTestApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

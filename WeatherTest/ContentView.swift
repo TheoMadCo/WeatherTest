@@ -19,7 +19,7 @@ struct ContentView: View {
                     .foregroundColor(.white)
                     .padding(.top, 50)
                 
-                TextField("Enter city", text: $city, onCommit: fetchWeather)
+                TextField("Enter city", text: $city, onCommit: fetchWeather) // <- Call fetchWeather() on commit
                     .padding()
                     .background(Color.white)
                     .cornerRadius(10)
@@ -37,12 +37,14 @@ struct ContentView: View {
     }
     
     private func fetchWeather() {
+        guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
         
         guard let encodedCity = city.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(encodedCity)&appid=14681310f305a9ea549bb12bc8abb35c&units=metric") else {
+              let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(encodedCity)&appid=\(ApiKey.value)&units=metric") else {
             isLoading = false
+            errorMessage = "Invalid URL"
             return
         }
         
@@ -116,12 +118,7 @@ struct WeatherView: View {
             
             if showDetails {
                 if let detailedWeather = detailedWeather {
-                    Text("Humidity: \(detailedWeather.main.humidity)%")
-                    Text("Wind Speed: \(detailedWeather.wind.speed) m/s")
-                    Text("Pressure: \(detailedWeather.main.pressure) hPa")
-                    Text("Visibility: \(detailedWeather.visibility / 1000) km")
-                    Text("Sunrise: \(formatTime(timestamp: detailedWeather.sys.sunrise))")
-                    Text("Sunset: \(formatTime(timestamp: detailedWeather.sys.sunset))")
+                    WeatherDetailsView(detailedWeather: detailedWeather)
                 } else {
                     Text("Loading...")
                         .foregroundColor(.gray)
@@ -167,6 +164,21 @@ struct WeatherView: View {
                 }
             }
         }.resume()
+    }
+}
+
+struct WeatherDetailsView: View {
+    let detailedWeather: DetailedWeather
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Humidity: \(detailedWeather.main.humidity)%")
+            Text("Wind Speed: \(detailedWeather.wind.speed) m/s")
+            Text("Pressure: \(detailedWeather.main.pressure) hPa")
+            Text("Visibility: \(detailedWeather.visibility / 1000) km")
+            Text("Sunrise: \(formatTime(timestamp: detailedWeather.sys.sunrise))")
+            Text("Sunset: \(formatTime(timestamp: detailedWeather.sys.sunset))")
+        }
     }
     
     private func formatTime(timestamp: Int) -> String {
